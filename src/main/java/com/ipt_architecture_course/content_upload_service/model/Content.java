@@ -1,4 +1,4 @@
-package com.ipt_architecture_course.microservices.content_upload_service.model;
+package com.ipt_architecture_course.content_upload_service.model;
 
 
 import org.springframework.data.annotation.Id;

@@ -1,4 +1,4 @@
-package com.ipt_architecture_course.microservices.content_upload_service.service;
+package com.ipt_architecture_course.content_upload_service.service;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;

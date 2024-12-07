@@ -1,4 +1,4 @@
-package com.ipt_architecture_course.microservices.content_upload_service.dto;
+package com.ipt_architecture_course.content_upload_service.dto;
 
 import org.springframework.web.multipart.MultipartFile;
 import java.util.List;

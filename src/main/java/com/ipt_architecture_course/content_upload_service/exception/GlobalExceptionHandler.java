@@ -1,4 +1,4 @@
-package com.ipt_architecture_course.microservices.content_upload_service.exception;
+package com.ipt_architecture_course.content_upload_service.exception;
 
 
 import org.springframework.http.HttpStatus;
