@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -40,21 +41,36 @@ public class UploadController {
             }
     )
     public ResponseEntity<String> uploadContent(@ModelAttribute UploadRequest uploadRequest) {
+        try {
+            // Processar uploads bem-sucedidos
+            List<String> successfulUploads = uploadRequest.getFiles().stream()
+                    .filter(this::isAllowedType)
+                    .map(file -> processFile(file, uploadRequest.getType()))
+                    .filter(result -> result.startsWith("SUCCESS:"))
+                    .map(result -> result.replace("SUCCESS:", ""))
+                    .collect(Collectors.toList());
 
-        List<String> successfulUploads = uploadRequest.getFiles().stream()
-                .filter(this::isAllowedType)
-                .map(file -> processFile(file, uploadRequest.getType()))
-                .filter(result -> result.startsWith("SUCCESS:"))
-                .map(result -> result.replace("SUCCESS:", ""))
-                .collect(Collectors.toList());
+            // Identificar falhas no upload
+            List<String> failedUploads = uploadRequest.getFiles().stream()
+                    .filter(file -> !isAllowedType(file))
+                    .map(file -> file.getOriginalFilename() + " (tipo inválido: " + file.getContentType() + ")")
+                    .collect(Collectors.toList());
 
-        List<String> failedUploads = uploadRequest.getFiles().stream()
-                .filter(file -> !isAllowedType(file))
-                .map(file -> file.getOriginalFilename() + " (tipo inválido: " + file.getContentType() + ")")
-                .collect(Collectors.toList());
+            // Construir mensagem de resposta
+            String responseMessage = buildResponseMessage(successfulUploads, failedUploads);
 
-        String responseMessage = buildResponseMessage(successfulUploads, failedUploads);
-        return ResponseEntity.ok(responseMessage);
+            // Retornar 500 se houver falhas no upload
+            if (!failedUploads.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseMessage);
+            }
+
+            return ResponseEntity.ok(responseMessage);
+
+        } catch (Exception e) {
+            // Capturar exceções inesperadas e retornar 500
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Erro ao processar upload: " + e.getMessage());
+        }
     }
 
     private boolean isAllowedType(MultipartFile file) {
